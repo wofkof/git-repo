@@ -2,7 +2,7 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-// 檢查是否在 Git 專案中
+// 確保是在 Git 專案中
 try {
   execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore" });
 } catch {
@@ -10,42 +10,38 @@ try {
   process.exit(1);
 }
 
-// 建立 logs 資料夾（如果不存在）
+// logs 資料夾
 const logDir = path.join(__dirname, "logs");
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-// 產生今天的日誌檔案
+// 產生/覆蓋 今日的 md 檔
 const today = new Date().toISOString().split("T")[0];
 const logFile = path.join(logDir, `${today}.md`);
-const content = `# 日誌 - ${today}\n\n- 自動產生的日誌內容。`;
+const content = `# 日誌 - ${today}\n\n- 登入時間：${new Date().toLocaleString()}\n`;
 
-if (!fs.existsSync(logFile)) {
-  fs.writeFileSync(logFile, content);
-  console.log(`✅ 建立新日誌：${logFile}`);
-} else {
-  console.log(`⚠️ 今日日誌已存在：${logFile}`);
-}
+fs.writeFileSync(logFile, content);
+console.log(`✅ 已產生今日 md：${logFile}`);
 
-// 自動 Git 操作
+// Git 操作（強制 commit 一次）
 try {
   execSync(`git add ${logFile}`, { stdio: "inherit" });
-  execSync(`git commit -m "Auto log commit for ${today}"`, { stdio: "inherit" });
+  execSync(`git commit -m "Auto log for ${today}"`, { stdio: "inherit" });
   execSync("git push origin main", { stdio: "inherit" });
   console.log("🚀 Push 成功");
 } catch (err) {
-  const errorMsg = err.stderr?.toString() || err.message;
-  console.error("❌ Push 失敗：", errorMsg);
+  const msg = err.stderr?.toString() || err.message;
+  console.error("❌ Push 失敗：", msg);
 
-  if (errorMsg.includes("non-fast-forward")) {
+  if (msg.includes("non-fast-forward")) {
     try {
-      console.log("📥 嘗試先 pull --rebase 再 push...");
+      console.log("📥 嘗試 pull --rebase 再 push...");
       execSync("git pull --rebase origin main", { stdio: "inherit" });
       execSync("git push origin main", { stdio: "inherit" });
-      console.log("✅ Push 成功（透過 rebase）");
+      console.log("✅ Push 成功（rebase 後）");
     } catch (pullErr) {
-      console.error("❌ 自動 pull/push 仍失敗：", pullErr.stderr?.toString() || pullErr.message);
+      console.error("❌ Pull 後仍失敗：", pullErr.stderr?.toString() || pullErr.message);
     }
   }
 }
