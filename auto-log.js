@@ -2,7 +2,7 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-// 檢查是否在 git 專案中
+// 檢查是否在 Git 專案中
 try {
   execSync("git rev-parse --is-inside-work-tree", { stdio: "ignore" });
 } catch {
@@ -31,9 +31,7 @@ if (!fs.existsSync(logFile)) {
 // 自動 Git 操作
 try {
   execSync(`git add ${logFile}`, { stdio: "inherit" });
-  execSync(`git commit -m "Auto log commit for ${today}"`, {
-    stdio: "inherit",
-  });
+  execSync(`git commit -m "Auto log commit for ${today}"`, { stdio: "inherit" });
   execSync("git push origin main", { stdio: "inherit" });
   console.log("🚀 Push 成功");
 } catch (err) {
@@ -47,10 +45,7 @@ try {
       execSync("git push origin main", { stdio: "inherit" });
       console.log("✅ Push 成功（透過 rebase）");
     } catch (pullErr) {
-      console.error(
-        "❌ 自動 pull/push 仍失敗：",
-        pullErr.stderr?.toString() || pullErr.message
-      );
+      console.error("❌ 自動 pull/push 仍失敗：", pullErr.stderr?.toString() || pullErr.message);
     }
   }
 }
