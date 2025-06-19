@@ -37,5 +37,20 @@ try {
   execSync("git push origin main", { stdio: "inherit" });
   console.log("🚀 Push 成功");
 } catch (err) {
-  console.error("❌ Push 失敗：", err.stderr?.toString() || err.message);
+  const errorMsg = err.stderr?.toString() || err.message;
+  console.error("❌ Push 失敗：", errorMsg);
+
+  if (errorMsg.includes("non-fast-forward")) {
+    try {
+      console.log("📥 嘗試先 pull --rebase 再 push...");
+      execSync("git pull --rebase origin main", { stdio: "inherit" });
+      execSync("git push origin main", { stdio: "inherit" });
+      console.log("✅ Push 成功（透過 rebase）");
+    } catch (pullErr) {
+      console.error(
+        "❌ 自動 pull/push 仍失敗：",
+        pullErr.stderr?.toString() || pullErr.message
+      );
+    }
+  }
 }
